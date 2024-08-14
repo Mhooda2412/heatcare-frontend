@@ -64,7 +64,9 @@ const ChoroplethMap = () => {
     // Fetch enrollment data
     fetch('http://127.0.0.1:8000/enrollment_geo_data')
       .then(response => response.json())
-      .then(data => setEnrollmentData(data));
+      .then(data => {
+        setEnrollmentData(data.result)
+      });
   }, []);
 
   // Merge enrollment data with GeoJSON data
@@ -74,6 +76,7 @@ const ChoroplethMap = () => {
     const updatedFeatures = geoData.features.map(feature => {
       const stateName = feature.properties.name;
       const stateAbbreviation = stateAbbreviationMap[stateName];
+      console.log(stateAbbreviation)
       const enrollmentInfo = enrollmentData.find(item => item.state === stateAbbreviation);
 
       if (enrollmentInfo) {
