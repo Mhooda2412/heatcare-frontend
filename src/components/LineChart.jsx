@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import axios from 'axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+const api_url = import.meta.env.VITE_API_URL
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -13,7 +14,7 @@ const LineChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/trends_over_time");
+        const response = await axios.get(`${api_url}/api/v1/trends_over_time`);
         const data = response.data.result;
 
         if (!Array.isArray(data) || data.length === 0) {
