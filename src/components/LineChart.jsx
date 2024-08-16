@@ -1,87 +1,88 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
-import axios from 'axios';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-const api_url = import.meta.env.VITE_API_URL
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import Modal from './Modal'; // Import the Modal component
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-const LineChart = () => {
+const LineChart = ({ data }) => {
   const [chartData, setChartData] = useState(null);
-  const [error, setError] = useState(null);
-  const [yearsToShow, setYearsToShow] = useState(5); // Start with the top 5 years
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [monthlyData, setMonthlyData] = useState(null);
+  const [selectedYear, setSelectedYear] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${api_url}/api/v1/trends_over_time`);
-        const data = response.data.result;
-
-        if (!Array.isArray(data) || data.length === 0) {
-          throw new Error("Data is not in expected format or is empty");
+    if (data) {
+      const yearlyTotals = new Map();
+      data.forEach(item => {
+        const year = item.year;
+        if (!yearlyTotals.has(year)) {
+          yearlyTotals.set(year, 0);
         }
+        yearlyTotals.set(year, yearlyTotals.get(year) + item.total_enrollment);
+      });
 
-        // Group data by year and sum rejections
-        const groupedData = new Map();
-        data.forEach(item => {
-          if (!groupedData.has(item.year)) {
-            groupedData.set(item.year, { totals: Array(12).fill(null), rejections: 0 });
-          }
-          const monthIndex = parseInt(item.month, 10) - 1;
-          groupedData.get(item.year).totals[monthIndex] = item.total_enrollment;
-          groupedData.get(item.year).rejections += item.total_enrollment;
-        });
+      const labels = Array.from(yearlyTotals.keys()).sort();
+      const totals = labels.map(year => yearlyTotals.get(year));
 
-        // Sort by rejections and slice the top N years to display
-        const sortedYears = Array.from(groupedData.entries())
-          .sort((a, b) => b[1].rejections - a[1].rejections)
-          .slice(0, yearsToShow);
-
-        const labels = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-        const datasets = sortedYears.map(([year, { totals }]) => ({
-          label: year,
+      setChartData({
+        labels: labels,
+        datasets: [{
+          label: 'Total Enrollment',
           data: totals,
-          borderColor: getRandomColor(),
-          fill: false,
+          borderColor: "blue",
+          backgroundColor: 'rgba(0, 0, 255, 0.2)',
+          fill: true,
           tension: 0.3,
-        }));
-
-        setChartData({
-          labels: labels,
-          datasets: datasets,
-        });
-      } catch (error) {
-        console.error('Error fetching the data', error);
-        setError('Error fetching the data');
-      }
-    };
-
-    fetchData();
-  }, [yearsToShow]); // Re-fetch when yearsToShow changes
-
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
+        }],
+      });
     }
-    return color;
-  };
+  }, [data]);
 
-  const loadMoreYears = () => {
-    setYearsToShow(prev => prev + 5); // Load 5 more years
+  const handlePointClick = (event, elements) => {
+    if (elements.length > 0) {
+      const index = elements[0].index;
+      const year = chartData.labels[index];
+      setSelectedYear(year);
+
+      const filteredData = data.filter(item => item.year === year);
+
+      const monthlyTotals = new Map();
+      filteredData.forEach(item => {
+        const month = item.month;
+        if (!monthlyTotals.has(month)) {
+          monthlyTotals.set(month, 0);
+        }
+        monthlyTotals.set(month, monthlyTotals.get(month) + item.total_enrollment);
+      });
+
+      const labels = Array.from(monthlyTotals.keys()).sort((a, b) => a - b);
+      const totals = labels.map(month => monthlyTotals.get(month));
+
+      setMonthlyData({
+        labels: labels,
+        datasets: [{
+          label: `Monthly Enrollment for ${year}`,
+          data: totals,
+          borderColor: '#FF5733',
+          fill: true,
+          tension: 0.3,
+        }],
+      });
+
+      setIsModalOpen(true);
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 bg-white shadow-lg rounded-lg">
-      {error ? (
-        <div className="text-red-500">{error}</div>
-      ) : chartData ? (
+    <div className="overflow-hidden w-full h-full bg-white shadow-lg rounded-lg">
+      {chartData ? (
         <>
           <Line
             data={chartData}
             options={{
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
                 legend: {
                   display: true,
@@ -90,7 +91,7 @@ const LineChart = () => {
                 tooltip: {
                   callbacks: {
                     label: function (context) {
-                      return `Year ${context.dataset.label}: ${context.parsed.y}`;
+                      return `Year ${context.label}: ${context.parsed.y}`;
                     },
                   },
                 },
@@ -99,7 +100,7 @@ const LineChart = () => {
                 x: {
                   title: {
                     display: true,
-                    text: 'Month',
+                    text: 'Year',
                   },
                 },
                 y: {
@@ -109,14 +110,62 @@ const LineChart = () => {
                   },
                 },
               },
+              onClick: handlePointClick,
             }}
           />
-          <button
-            className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={loadMoreYears}
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
           >
-            Load More Years
-          </button>
+            <div className="relative w-full h-full">
+              {monthlyData ? (
+                <div className="w-full h-full">
+                  <Line
+                    data={monthlyData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          display: true,
+                          position: 'top',
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function (context) {
+                              return `Month ${context.label}: ${context.parsed.y}`;
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        x: {
+                          title: {
+                            display: true,
+                            text: 'Month',
+                          },
+                          ticks: {
+                            callback: function (value) {
+                              const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+                              return months[value];
+                            },
+                          },
+                        },
+                        y: {
+                          title: {
+                            display: true,
+                            text: 'Total Enrollment',
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              ) : (
+                <div>Loading monthly data...</div>
+              )}
+            </div>
+          </Modal>
         </>
       ) : (
         <div>Loading...</div>
