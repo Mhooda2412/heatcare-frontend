@@ -15,7 +15,7 @@ const LineChartPage = () => {
   const [latestYearTotalEnrollment, setLatestYearTotalEnrollment] = useState(null);
   const [enrollmentData, setEnrollmentData] = useState({});
   const [planData, setPlanData] = useState(null);
-  const [barData, setBarData] = useState(null)
+  const [barData, setBarData] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -145,7 +145,7 @@ const LineChartPage = () => {
   return (
     <div className="flex flex-col space-y-4 w-full h-full bg-gray-100 p-4">
       {/* Cards Section */}
-      <div className="flex flex-row justify-between space-x-4">
+      <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4">
         <div className="bg-white p-6 rounded-lg shadow-md flex-1">
           <h2 className="text-lg font-semibold mb-2">Total Enrollment</h2>
           <p className="text-3xl font-bold">
@@ -168,30 +168,30 @@ const LineChartPage = () => {
 
       {/* Charts Section */}
       <div className="flex flex-col space-y-4">
-        <div className="flex flex-row space-x-4">
+        <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
           <div className="flex-1 flex flex-col items-center min-w-[300px]">
-            <h1 className="text-2xl font-bold mb-4">Enrollment Trends Over Time</h1>
+            <h1 className="text-2xl font-bold mb-4">Enrollment Trends </h1>
             <div className="w-full h-[400px] max-w-full">
               <LineChart data={lineData} />
             </div>
           </div>
 
           <div className="flex-1 flex flex-col items-center min-w-[300px]">
-            <h1 className="text-2xl font-bold mb-4">Choropleth Map</h1>
+            <h1 className="text-2xl font-bold mb-4">Enrollment Across States</h1>
             <div className="w-full h-[400px] max-w-full">
               <D3ChoroplethMap enrollmentData={enrollmentData} />
             </div>
           </div>
         </div>
-        <div className="flex flex-row space-x-4">
-          <div className="flex-[3] flex flex-col items-center min-w-[300px]">
-            <h1 className="text-2xl font-bold mb-4">Top Plans Pie Chart</h1>
+        <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
+          <div className="flex-[1] flex flex-col items-center min-w-[300px]">
+            <h1 className="text-2xl font-bold mb-4">Top Enrollment Plans</h1>
             <div className="w-full h-[400px] max-w-full">
               <TopPlansPieChart data={planData} />
             </div>
           </div>
           <div className="flex-[1] flex flex-col items-center min-w-[300px]">
-            <h1 className="text-2xl font-bold mb-4">Bar Char</h1>
+            <h1 className="text-2xl font-bold mb-4">Most & Least Enrollment</h1>
             <div className="w-full h-[400px] max-w-full">
               <BarChartMax data={barData} />
             </div>

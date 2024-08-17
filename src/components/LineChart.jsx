@@ -1,7 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import Modal from './Modal'; // Import the Modal component
+import Loader from './Loader';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -162,13 +163,17 @@ const LineChart = ({ data }) => {
                   />
                 </div>
               ) : (
-                <div>Loading monthly data...</div>
+                <div className="flex justify-center items-center w-full h-full bg-white shadow-lg rounded-lg p-4">
+                  <Loader />
+                </div>
               )}
             </div>
           </Modal>
         </>
       ) : (
-        <div>Loading...</div>
+        <div className="flex justify-center items-center w-full h-full bg-white shadow-lg rounded-lg p-4">
+          <Loader />
+        </div>
       )}
     </div>
   );

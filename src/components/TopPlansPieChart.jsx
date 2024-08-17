@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
+import Loader from './Loader';
 
 Chart.register(ArcElement, Tooltip, Legend);
 
@@ -16,10 +17,9 @@ const TopPlansPieChart = ({ data }) => {
 
     if (isLoading) {
         return (
-            <div className='overflow-hidden w-full h-full bg-white shadow-lg rounded-lg p-4'>
-                <h2>Top 5 Plans by Enrollment</h2>
-                <p>Loading data, please wait...</p>
-            </div>
+            <div className="flex justify-center items-center w-full h-full bg-white shadow-lg rounded-lg p-4">
+            <Loader />
+        </div>
         );
     }
 

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { feature, mesh } from 'topojson-client';
 import { stateAbbreviationMap } from '../utils/stateAbbreviations';
 import { stateIdToName } from '../utils/stateId';
+import Loader from './Loader';
 
 // Color mapping function
 const getColor = (d) => {
@@ -17,6 +18,7 @@ const getColor = (d) => {
 };
 
 const D3ChoroplethMap = ({ enrollmentData }) => {
+  const [loading, setLoading] = useState(true);
   const svgRef = useRef(null);
   const tooltipRef = useRef(null);
 
@@ -98,13 +100,21 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
       svg.append('path')
         .attr('class', 'state-borders')
         .attr('d', path(mesh(data, data.objects.states, (a, b) => a !== b)));
+
+      setLoading(false); // Data has been loaded
     }).catch(error => {
       console.error('Error loading or parsing GeoJSON data:', error);
+      setLoading(false); // Even if there's an error, we want to stop showing the loader
     });
   }, [enrollmentData]); // Depend on enrollmentData to re-render when data changes
 
   return (
     <div className="relative overflow-hidden w-full h-full p-4 bg-white shadow-lg rounded-lg">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <Loader></Loader>
+        </div>
+      )}
       <svg ref={svgRef} className='w-full h-full' viewBox="0 0 960 600">
         <style>
           {`

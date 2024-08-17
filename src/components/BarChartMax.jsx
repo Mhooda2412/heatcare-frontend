@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import Loader from './Loader';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -27,7 +28,9 @@ const BarChartMax = ({ data }) => {
 
     // Render a loading message or placeholder until data is ready
     if (!chartData) {
-        return <p>Loading chart...</p>;
+        return <div className="flex justify-center items-center w-full h-full bg-white shadow-lg rounded-lg p-4">
+            <Loader />
+        </div>;
     }
 
     // Chart options

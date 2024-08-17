@@ -6,12 +6,12 @@ const api_url = import.meta.env.VITE_API_URL
 
 const getColor = (d) => {
   return d > 10000000 ? '#800026' :
-         d > 5000000  ? '#BD0026' :
-         d > 1000000  ? '#E31A1C' :
-         d > 500000   ? '#FC4E2A' :
-         d > 100000   ? '#FD8D3C' :
-         d > 50000    ? '#FEB24C' :
-                        '#FED976';
+    d > 5000000 ? '#BD0026' :
+      d > 1000000 ? '#E31A1C' :
+        d > 500000 ? '#FC4E2A' :
+          d > 100000 ? '#FD8D3C' :
+            d > 50000 ? '#FEB24C' :
+              '#FED976';
 };
 
 const style = (feature) => ({
@@ -114,15 +114,17 @@ const ChoroplethMap = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex justify-center items-center w-full h-full bg-white shadow-lg rounded-lg p-4">
+      <Loader />
+    </div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4 bg-white shadow-lg rounded-lg sticky">
-      <MapContainer 
-        center={[37.8, -96]} 
-        zoom={4} 
-        className="h-[500px] w-full" 
+      <MapContainer
+        center={[37.8, -96]}
+        zoom={4}
+        className="h-[500px] w-full"
         scrollWheelZoom={false}
         zoomControl={true}
       >
