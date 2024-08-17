@@ -1,17 +1,21 @@
 import LineChart from "./LineChart";
 import D3ChoroplethMap from "./D3Map";
+import BarChartMax from "./BarChartMax";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CountUp from 'react-countup';
+import TopPlansPieChart from './TopPlansPieChart';
 
 const api_url = import.meta.env.VITE_API_URL;
 
 const LineChartPage = () => {
   const [lineData, setLineData] = useState(null);
-  const [totalEnrolment, setTotalEnrolment] = useState(null)
-  const [latestMonthEnrollment, setLatestMonthEnrollment] = useState(null)
-  const [latestYearTotalEnrollment, setLatestYearTotalEnrollment] = useState(null)
+  const [totalEnrolment, setTotalEnrolment] = useState(null);
+  const [latestMonthEnrollment, setLatestMonthEnrollment] = useState(null);
+  const [latestYearTotalEnrollment, setLatestYearTotalEnrollment] = useState(null);
   const [enrollmentData, setEnrollmentData] = useState({});
+  const [planData, setPlanData] = useState(null);
+  const [barData, setBarData] = useState(null)
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -25,7 +29,7 @@ const LineChartPage = () => {
         }
         setLineData(fetchedData);
         const totalEnrollmentSum = fetchedData.reduce((sum, item) => sum + item.total_enrollment, 0);
-        setTotalEnrolment(totalEnrollmentSum)
+        setTotalEnrolment(totalEnrollmentSum);
 
         // Find the latest year
         const latestYear = Math.max(...fetchedData.map(item => item.year));
@@ -45,20 +49,21 @@ const LineChartPage = () => {
         // Calculate the total enrollment for the latest month
         setLatestMonthEnrollment(dataForLatestMonth.reduce((sum, item) => sum + item.total_enrollment, 0));
 
-
-
       } catch (error) {
         console.error('Error fetching the data', error);
         setError('Error fetching the data');
       }
+
       fetch(`${api_url}/api/v1/enrollment_geo_data`)
         .then(response => response.json())
         .then(data => {
+          console.log(data.result)
           const dataMap = data.result.reduce((acc, item) => {
             acc[item.state] = item;
             return acc;
           }, {});
           setEnrollmentData(dataMap);
+
           // Step 1: Calculate Total Enrollment
           const totalEnrollment = data.result.reduce((sum, entry) => sum + entry.total_enrollment, 0);
 
@@ -101,9 +106,33 @@ const LineChartPage = () => {
               Count_of_States: countOfStates,
             };
           });
+          setPlanData(result);
 
-          // Final result
-          console.log(result);
+          let maxEnrollment = -Infinity;
+          let minEnrollment = Infinity;
+          let maxState = null;
+          let minState = null;
+
+          // Iterate through each object to find the states with the most and least enrollment
+          data.result.forEach(item => {
+            if (item.total_enrollment > maxEnrollment) {
+              maxEnrollment = item.total_enrollment;
+              maxState = item.state;
+            }
+            if (item.total_enrollment < minEnrollment) {
+              minEnrollment = item.total_enrollment;
+              minState = item.state;
+            }
+          });
+
+          // Create the result object with the states and their enrollments
+          const resultState = [
+            { state: maxState, enrollment: maxEnrollment },
+            { state: minState, enrollment: minEnrollment }
+          ];
+          
+          setBarData(resultState)
+          console.log(resultState);
         })
         .catch(error => {
           console.error('Error fetching enrollment data:', error);
@@ -138,18 +167,34 @@ const LineChartPage = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="flex flex-row flex-wrap justify-between items-stretch w-full space-x-4">
-        <div className="flex-1 flex flex-col items-center mb-4 min-w-[300px]">
-          <h1 className="text-2xl font-bold mb-4">Enrollment Trends Over Time</h1>
-          <div className="w-full h-[400px] max-w-full">
-            <LineChart data={lineData} />
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-row space-x-4">
+          <div className="flex-1 flex flex-col items-center min-w-[300px]">
+            <h1 className="text-2xl font-bold mb-4">Enrollment Trends Over Time</h1>
+            <div className="w-full h-[400px] max-w-full">
+              <LineChart data={lineData} />
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col items-center min-w-[300px]">
+            <h1 className="text-2xl font-bold mb-4">Choropleth Map</h1>
+            <div className="w-full h-[400px] max-w-full">
+              <D3ChoroplethMap enrollmentData={enrollmentData} />
+            </div>
           </div>
         </div>
-
-        <div className="flex-1 flex flex-col items-center mb-4 min-w-[300px]">
-          <h1 className="text-2xl font-bold mb-4">Choropleth Map</h1>
-          <div className="w-full h-[400px] max-w-full">
-            <D3ChoroplethMap enrollmentData={enrollmentData} />
+        <div className="flex flex-row space-x-4">
+          <div className="flex-[3] flex flex-col items-center min-w-[300px]">
+            <h1 className="text-2xl font-bold mb-4">Top Plans Pie Chart</h1>
+            <div className="w-full h-[400px] max-w-full">
+              <TopPlansPieChart data={planData} />
+            </div>
+          </div>
+          <div className="flex-[1] flex flex-col items-center min-w-[300px]">
+            <h1 className="text-2xl font-bold mb-4">Bar Char</h1>
+            <div className="w-full h-[400px] max-w-full">
+              <BarChartMax data={barData} />
+            </div>
           </div>
         </div>
       </div>
