@@ -16,7 +16,7 @@ const BarChartMax = ({ data }) => {
                 datasets: [
                     {
                         label: 'Enrollment',
-                        data: data.map(item => item.enrollment),
+                        data: data.map(item => item.total_enrollment),
                         backgroundColor: 'rgba(75, 192, 192, 0.6)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
@@ -46,6 +46,12 @@ const BarChartMax = ({ data }) => {
                         return new Intl.NumberFormat().format(value);
                     }
                 }
+            }
+        },
+        plugins: {
+            tooltip: {
+                intersect: false,  // Show tooltip on the entire bar
+                mode: 'index',     // Show tooltip when hovering over the bar
             }
         }
     };

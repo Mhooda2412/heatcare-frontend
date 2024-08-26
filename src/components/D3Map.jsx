@@ -4,18 +4,21 @@ import { feature, mesh } from 'topojson-client';
 import { stateAbbreviationMap } from '../utils/stateAbbreviations';
 import { stateIdToName } from '../utils/stateId';
 import Loader from './Loader';
-
+import BarChartMax from './BarChartMax';
+import { createRoot } from 'react-dom/client';
 // Color mapping function
 const getColor = (d) => {
-  return d > 500000000 ? '#800026' :    // Very High
-    d > 100000000 ? '#BD0026' :    // High
-      d > 50000000 ? '#E31A1C' :    // Moderate-High
-        d > 10000000 ? '#FC4E2A' :    // Moderate
-          d > 5000000 ? '#FD8D3C' :    // Low-Moderate
-            d > 1000000 ? '#FEB24C' :    // Low
-              d > 500000 ? '#FED976' :    // Very Low
-                '#FFEDA0';    // Minimal
+  return d > 3000000 ? '#800026' :    // Very High
+         d > 2000000 ? '#BD0026' :    // High
+         d > 1000000 ? '#E31A1C' :    // Moderate-High
+         d > 500000  ? '#FC4E2A' :    // Moderate
+         d > 250000  ? '#FD8D3C' :    // Low-Moderate
+         d > 100000  ? '#FEB24C' :    // Low
+         d > 50000   ? '#FED976' :    // Very Low
+                       '#FFEDA0';    // Minimal
 };
+
+
 
 const D3ChoroplethMap = ({ enrollmentData }) => {
   const [loading, setLoading] = useState(true);
@@ -24,7 +27,6 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
 
   useEffect(() => {
     if (Object.keys(enrollmentData).length === 0) return; // Wait for data to be loaded
-
     const svg = d3.select(svgRef.current);
     const width = svg.node().getBoundingClientRect().width;
     const height = svg.node().getBoundingClientRect().height;
@@ -48,7 +50,8 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
           const stateId = d.id;
           const stateName = stateIdToName[stateId] || 'Unknown';
           const stateAbbreviation = stateAbbreviationMap[stateName];
-          const enrollment = enrollmentData[stateAbbreviation] || {};
+          const enrollment = enrollmentData.find(item => item.state === stateAbbreviation) || {};
+          console.log(enrollment)
           return getColor(enrollment.total_enrollment || 0);
         })
         .on('mouseover', function (event, d) {
@@ -56,14 +59,14 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
           const stateId = d.id;
           const stateName = stateIdToName[stateId] || 'Unknown';
           const stateAbbreviation = stateAbbreviationMap[stateName];
-          const enrollment = enrollmentData[stateAbbreviation] || {};
+          const enrollment = enrollmentData.find(item => item.state === stateAbbreviation) || {};
 
           const htmlContent = `
             <div class="p-4 shadow-lg rounded-md tooltip">
               <h2 class="text-xl font-bold text-gray-800 mb-2">${stateName}</h2>
               <p class="text-gray-600"><span class="font-semibold">Enrollment:</span> ${enrollment.total_enrollment?.toLocaleString() || 'N/A'}</p>
-              <p class="text-gray-600"><span class="font-semibold">Popular Plan:</span> ${enrollment.popular_plan || 'N/A'}</p>
-              <p class="text-gray-600"><span class="font-semibold">Growth Rate:</span> ${enrollment.growth_rate !== null ? enrollment.growth_rate : 'N/A'}</p>
+              <p class="text-gray-600"><span class="font-semibold">Popular Plan:</span> ${enrollment.plan_name || 'N/A'}</p>
+              
             </div>`;
 
           const tooltip = d3.select(tooltipRef.current)
@@ -72,6 +75,10 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
             .style('left', `${x}px`)
             .html(htmlContent);
 
+            // const container = document.getElementById('react-bar-chart');
+            // const root = createRoot(container);
+            // root.render(<BarChartMax />);
+          
           const tooltipElement = tooltip.node();
           const tooltipWidth = tooltipElement.offsetWidth;
           const tooltipHeight = tooltipElement.offsetHeight;
@@ -109,7 +116,7 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
   }, [enrollmentData]); // Depend on enrollmentData to re-render when data changes
 
   return (
-    <div className="relative overflow-hidden w-full h-full p-4 bg-white shadow-lg rounded-lg">
+    <div className="relative  w-full h-full p-4 bg-white shadow-lg rounded-lg">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
           <Loader></Loader>
@@ -130,9 +137,9 @@ const D3ChoroplethMap = ({ enrollmentData }) => {
               pointer-events: none;
             }
             .tooltip {
-              white-space: nowrap; /* Prevent text from wrapping to the next line */
+             /* white-space: nowrap; */ /* Prevent text from wrapping to the next line */
               max-width: 300px; /* Optional: set a maximum width for the tooltip */
-              overflow: hidden; /* Hide overflow text */
+              
               background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
               border: 1px solid rgba(0, 0, 0, 0.5); /* Slightly transparent border */
             }
