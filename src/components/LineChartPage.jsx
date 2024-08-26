@@ -43,21 +43,7 @@ const LineChartPage = () => {
         const response = await axios.get(`${api_url}/api/v1/current_month_state_plan`)
         const state_enrollment = response.data.current_month_state_plan
         setUsStatePlan(state_enrollment)
-
-        // Sort data by total enrollment in descending order
-        state_enrollment.sort((a, b) => b.total_enrollment - a.total_enrollment);
-        const top3 = state_enrollment.slice(0, 3).map(item => ({
-          state: item.state,
-          total_enrollment: item.total_enrollment
-        }));
-
-        const bottom3 = state_enrollment.slice(-3).map(item => ({
-          state: item.state,
-          total_enrollment: item.total_enrollment
-        }));
-
-        const combinedResults = [...top3, ...bottom3];
-        setBarData(combinedResults)
+        setBarData(state_enrollment)
 
       } catch (error) {
         console.error('Error fetching the data', error);
